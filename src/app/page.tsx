@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import ModeSelection from '../components/ModeSelection';
-import MathQuiz from '../components/Mathquiz';
+import MathQuiz from '../components/MathQuiz';
 import MathQuizSeries from '../components/MathQuizSeries';
 import HomeButton from '../components/HomeButton';
 

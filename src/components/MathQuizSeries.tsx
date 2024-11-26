@@ -3,7 +3,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import MathQuiz from './Mathquiz';
+import MathQuiz from './MathQuiz'; // Corrected casing
 
 type Operation = 'addition' | 'subtraction' | 'splitsen';
 
@@ -31,51 +31,51 @@ const MathQuizSeries: React.FC<MathQuizSeriesProps> = ({ operation }) => {
   const [results, setResults] = useState<QuestionResult[]>([]);
   const [showSummary, setShowSummary] = useState<boolean>(false);
 
+  // Function to generate unique questions
+  const generateQuestions = () => {
+    let possibleQuestions: Question[] = [];
+
+    if (operation === 'addition') {
+      for (let a = 0; a <= 5; a++) {
+        for (let b = 0; b <= 5 - a; b++) {
+          possibleQuestions.push({ num1: a, num2: b });
+        }
+      }
+    } else if (operation === 'subtraction') {
+      for (let b = 0; b <= 5; b++) {
+        for (let a = b; a <= 5; a++) {
+          possibleQuestions.push({ num1: a, num2: b });
+        }
+      }
+    } else if (operation === 'splitsen') {
+      for (let a = 0; a <= 5; a++) {
+        for (let b = 0; b <= a; b++) {
+          possibleQuestions.push({ num1: a, num2: b });
+        }
+      }
+    }
+
+    // Shuffle the array to randomize the order
+    possibleQuestions = shuffleArray(possibleQuestions);
+
+    // If there are more questions than TOTAL_QUESTIONS, slice the array
+    if (possibleQuestions.length > TOTAL_QUESTIONS) {
+      possibleQuestions = possibleQuestions.slice(0, TOTAL_QUESTIONS);
+    }
+
+    setQuestions(possibleQuestions);
+  };
+
   // Generate unique questions when the component mounts or operation changes
   useEffect(() => {
-    const generateQuestions = () => {
-      let possibleQuestions: Question[] = [];
-
-      if (operation === 'addition') {
-        for (let a = 0; a <= 5; a++) {
-          for (let b = 0; b <= 5 - a; b++) {
-            possibleQuestions.push({ num1: a, num2: b });
-          }
-        }
-      } else if (operation === 'subtraction') {
-        for (let b = 0; b <= 5; b++) {
-          for (let a = b; a <= 5; a++) {
-            possibleQuestions.push({ num1: a, num2: b });
-          }
-        }
-      } else if (operation === 'splitsen') {
-        for (let a = 0; a <= 5; a++) {
-          for (let b = 0; b <= a; b++) {
-            possibleQuestions.push({ num1: a, num2: b });
-          }
-        }
-      }
-
-      // Shuffle the array to randomize the order
-      possibleQuestions = shuffleArray(possibleQuestions);
-
-      // If there are more questions than TOTAL_QUESTIONS, slice the array
-      if (possibleQuestions.length > TOTAL_QUESTIONS) {
-        possibleQuestions = possibleQuestions.slice(0, TOTAL_QUESTIONS);
-      }
-
-      setQuestions(possibleQuestions);
-    };
-
     generateQuestions();
     setCurrentQuestionIndex(0);
     setResults([]);
     setShowSummary(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [operation]);
 
   // Function to shuffle an array
-  const shuffleArray = (array: Question[]) => {
+  const shuffleArray = (array: Question[]): Question[] => {
     const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -94,6 +94,14 @@ const MathQuizSeries: React.FC<MathQuizSeriesProps> = ({ operation }) => {
     }
   };
 
+  // Define handleReset function
+  const handleReset = () => {
+    generateQuestions();
+    setCurrentQuestionIndex(0);
+    setResults([]);
+    setShowSummary(false);
+  };
+
   if (showSummary) {
     const correctAnswers = results.filter((res) => res.isCorrect).length;
 
@@ -104,11 +112,45 @@ const MathQuizSeries: React.FC<MathQuizSeriesProps> = ({ operation }) => {
           You answered {correctAnswers} out of {questions.length} questions correctly.
         </p>
         {/* Display detailed results */}
-        {/* ... existing code ... */}
+        <table className="w-full max-w-lg mx-auto text-left">
+          <thead>
+            <tr>
+              <th className="border px-2 py-1">Question</th>
+              <th className="border px-2 py-1">Your Answer</th>
+              <th className="border px-2 py-1">Correct Answer</th>
+              <th className="border px-2 py-1">Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((result, index) => (
+              <tr key={index} className="border-t">
+                <td className="border px-2 py-1">{result.question}</td>
+                <td className="border px-2 py-1">{result.userAnswer}</td>
+                <td className="border px-2 py-1">{result.correctAnswer}</td>
+                <td className="border px-2 py-1">
+                  {result.isCorrect ? (
+                    <span className="text-success font-semibold">Correct</span>
+                  ) : (
+                    <span className="text-error font-semibold">Incorrect</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Retake Test Button */}
+        <button
+          onClick={handleReset}
+          className="mt-6 px-4 py-2 bg-primary text-surface rounded font-semibold"
+        >
+          Retake Test
+        </button>
       </div>
     );
   }
 
+  // Ensure this block is outside the if (showSummary) block
   if (questions.length === 0) {
     return <div>Loading questions...</div>;
   }
