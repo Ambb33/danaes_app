@@ -18,11 +18,17 @@ const getRandomNumber = (max: number): number => {
   return Math.floor(Math.random() * (max + 1));
 };
 
-const SplitsenQuiz: React.FC<SplitsenQuizProps> = ({ num1, num2, onAnswer }) => {
+const SplitsenQuiz: React.FC<SplitsenQuizProps> = ({
+  num1,
+  num2,
+  onAnswer,
+}) => {
   const [currentNum1, setCurrentNum1] = useState<number>(num1 ?? 0);
   const [currentNum2, setCurrentNum2] = useState<number>(num2 ?? 0);
   const [answer, setAnswer] = useState<string>('');
   const [message, setMessage] = useState<string>('');
+  const [showVisualization, setShowVisualization] = useState<boolean>(true);
+  const [showExtraHelp, setShowExtraHelp] = useState<boolean>(true);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -34,6 +40,11 @@ const SplitsenQuiz: React.FC<SplitsenQuizProps> = ({ num1, num2, onAnswer }) => 
       a = getRandomNumber(5);
       b = getRandomNumber(a);
     }
+
+    // Ensure 'a' is between 0 and 5
+    a = Math.min(Math.max(a, 0), 5);
+    // Ensure 'b' is between 0 and 'a'
+    b = Math.min(Math.max(b, 0), a);
 
     setCurrentNum1(a);
     setCurrentNum2(b);
@@ -52,14 +63,15 @@ const SplitsenQuiz: React.FC<SplitsenQuizProps> = ({ num1, num2, onAnswer }) => 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const correctAnswer = currentNum1 - currentNum2;
-    const isCorrect = parseInt(answer) === correctAnswer;
+    const userAnswer = parseInt(answer);
+    const isCorrect = userAnswer === correctAnswer;
 
     const questionText = `${currentNum1} splitsen ${currentNum2} + ?`;
 
     if (onAnswer) {
       onAnswer({
         question: questionText,
-        userAnswer: parseInt(answer),
+        userAnswer,
         correctAnswer,
         isCorrect,
       });
@@ -71,11 +83,30 @@ const SplitsenQuiz: React.FC<SplitsenQuizProps> = ({ num1, num2, onAnswer }) => 
     }
   };
 
-  const renderCircles = (count: number, color: string) => {
-    return Array.from({ length: count }, (_, index) => (
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // Allow empty string for delete/backspace
+    if (value === '') {
+      setAnswer('');
+      return;
+    }
+
+    const numValue = parseInt(value);
+    if (!isNaN(numValue) && numValue >= 0 && numValue <= 5) {
+      setAnswer(value);
+    }
+  };
+
+  const renderCircles = (colors: string[]) => {
+    const count = colors.length;
+    const limitedCount = Math.min(count, 5); // Limit circle count
+    return Array.from({ length: limitedCount }, (_, index) => (
       <motion.div
         key={index}
-        className={`w-8 h-8 ${color} rounded-full m-1`}
+        className={`w-8 h-8 ${
+          colors[index]
+        } rounded-full m-1`}
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0 }}
@@ -84,13 +115,64 @@ const SplitsenQuiz: React.FC<SplitsenQuizProps> = ({ num1, num2, onAnswer }) => 
     ));
   };
 
+  // Prepare circle colors for the top right square (visualization)
+  const getTopCircleColors = (): string[] => {
+    const colors: string[] = [];
+    const totalCircles = currentNum1;
+
+    // Initialize all circles as yellow
+    for (let i = 0; i < totalCircles; i++) {
+      colors.push('bg-yellow-500');
+    }
+
+    // Only change colors if there is user input and extra help is on
+    if (showExtraHelp && answer !== '') {
+      const userAnswer = parseInt(answer) || 0;
+
+      // Change currentNum2 circles to blue
+      for (let i = 0; i < currentNum2; i++) {
+        if (i < colors.length) {
+          colors[i] = 'bg-blue-500';
+        }
+      }
+
+      // Change userAnswer circles to green starting after currentNum2
+      for (let i = currentNum2; i < currentNum2 + userAnswer; i++) {
+        if (i < colors.length) {
+          colors[i] = 'bg-green-500';
+        } else {
+          // If userAnswer exceeds available circles, add semi-transparent green circles
+          colors.push('bg-green-500 opacity-50');
+        }
+      }
+    }
+
+    return colors;
+  };
+
   return (
     <div className="flex flex-col items-center mt-8">
+      {/* Visualization and Extra Help Toggle Buttons */}
+      <div className="mb-4 flex space-x-4">
+        <button
+          onClick={() => setShowVisualization(!showVisualization)}
+          className="px-4 py-2 bg-indigo-500 text-white rounded"
+        >
+          {showVisualization ? 'Hide Visualization' : 'Show Visualization'}
+        </button>
+        <button
+          onClick={() => setShowExtraHelp(!showExtraHelp)}
+          className="px-4 py-2 bg-green-500 text-white rounded"
+        >
+          {showExtraHelp ? 'Hide Extra Help' : 'Show Extra Help'}
+        </button>
+      </div>
+
       <div className="flex flex-row justify-center">
-        {/* Left side: Triangle representation */}
+        {/* Left side: Numerical Value */}
         <div className="flex flex-col items-center mr-8">
           <div className="relative flex flex-col items-center mb-4">
-            {/* Top number */}
+            {/* Top number (numerical value) */}
             <div className="w-32 h-32 border-4 border-primary-dark flex items-center justify-center text-4xl bg-yellow-300 rounded-md">
               {currentNum1}
             </div>
@@ -116,7 +198,7 @@ const SplitsenQuiz: React.FC<SplitsenQuizProps> = ({ num1, num2, onAnswer }) => 
                 ref={inputRef}
                 type="number"
                 value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
+                onChange={handleInputChange}
                 required
                 min="0"
                 max="5"
@@ -126,45 +208,55 @@ const SplitsenQuiz: React.FC<SplitsenQuizProps> = ({ num1, num2, onAnswer }) => 
           </div>
         </div>
 
-        {/* Right side: Visual representation in the same layout */}
+        {/* Right side: Visualization */}
         <div className="flex flex-col items-center">
-          <div className="relative flex flex-col items-center mb-4">
-            <div className="w-32 h-32 border-4 border-primary-dark flex items-center justify-center bg-gray-200">
-              <div className="flex flex-wrap justify-center">
-                <AnimatePresence>
-                  {renderCircles(currentNum1, 'bg-yellow-500')}
-                </AnimatePresence>
+          {showVisualization && (
+            <>
+              <div className="relative flex flex-col items-center mb-4">
+                {/* Top visualization (circles) */}
+                <div className="w-32 h-32 border-4 border-primary-dark flex items-center justify-center bg-gray-200 rounded-md">
+                  <div className="flex flex-wrap justify-center">
+                    <AnimatePresence>
+                      {renderCircles(getTopCircleColors())}
+                    </AnimatePresence>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div className="flex items-center mb-4">
-            <div
-              className="w-px h-16 bg-primary-dark transform rotate-45 origin-top-left"
-              style={{ marginRight: '-1px' }}
-            ></div>
-            <div
-              className="w-px h-16 bg-primary-dark transform -rotate-45 origin-top-right"
-              style={{ marginLeft: '-1px' }}
-            ></div>
-          </div>
+              <div className="flex items-center mb-4">
+                <div
+                  className="w-px h-16 bg-primary-dark transform rotate-45 origin-top-left"
+                  style={{ marginRight: '-1px' }}
+                ></div>
+                <div
+                  className="w-px h-16 bg-primary-dark transform -rotate-45 origin-top-right"
+                  style={{ marginLeft: '-1px' }}
+                ></div>
+              </div>
 
-          <div className="flex space-x-8 mt-2">
-            <div className="w-32 h-32 border-4 border-primary-dark flex items-center justify-center bg-gray-200">
-              <div className="flex flex-wrap justify-center">
-                <AnimatePresence>
-                  {renderCircles(currentNum2, 'bg-blue-500')}
-                </AnimatePresence>
+              <div className="flex space-x-8 mt-2">
+                {/* Bottom squares: Visualizations of currentNum2 and answer */}
+                <div className="w-32 h-32 border-4 border-primary-dark flex items-center justify-center bg-gray-200 rounded-md">
+                  <div className="flex flex-wrap justify-center">
+                    <AnimatePresence>
+                      {renderCircles(
+                        Array(currentNum2).fill('bg-blue-500')
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+                <div className="w-32 h-32 border-4 border-primary-dark flex items-center justify-center bg-gray-200 rounded-md">
+                  <div className="flex flex-wrap justify-center">
+                    <AnimatePresence>
+                      {renderCircles(
+                        Array(parseInt(answer) || 0).fill('bg-green-500')
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="w-32 h-32 border-4 border-primary-dark flex items-center justify-center bg-gray-200">
-              <div className="flex flex-wrap justify-center">
-                <AnimatePresence>
-                  {renderCircles(parseInt(answer) || 0, 'bg-green-500')}
-                </AnimatePresence>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -179,7 +271,7 @@ const SplitsenQuiz: React.FC<SplitsenQuizProps> = ({ num1, num2, onAnswer }) => 
       </div>
 
       {/* Message */}
-      {!onAnswer && message && (
+      {message && (
         <div
           className={`mt-4 text-2xl text-center font-semibold ${
             message.includes('Correct') ? 'text-success' : 'text-error'
