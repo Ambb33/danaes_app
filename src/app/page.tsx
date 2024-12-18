@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import ModeSelection from '../components/ModeSelection';
-import MathQuiz from '../components/MathQuiz';
+import MathQuiz from '../components/Mathquiz';
 import MathQuizSeries from '../components/MathQuizSeries';
 
 type Operation = 'addition' | 'subtraction' | 'splitsen' | 'mixed';

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import MathQuiz from './MathQuiz';
+import Mathquiz from './Mathquiz';
 import axios from 'axios';
 
 type Operation = 'addition' | 'subtraction' | 'splitsen' | 'mixed';
@@ -225,7 +225,7 @@ const MathQuizSeries: React.FC<MathQuizSeriesProps> = ({ operation }) => {
       <div className="text-xl mb-4">
         Question {currentQuestionIndex + 1} of {questions.length}
       </div>
-      <MathQuiz
+      <Mathquiz
         key={currentQuestionIndex}
         operation={currentQuestion.operation}
         num1={currentQuestion.num1}
