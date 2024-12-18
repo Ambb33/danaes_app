@@ -1,37 +1,32 @@
-// tailwind.config.js
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
     './src/app/**/*.{js,ts,jsx,tsx}',
-   
     './src/components/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
-   // tailwind.config.js
-
-extend: {
-  colors: {
-    primary: {
-      light: '#FFECB3',       // Light amber
-      DEFAULT: '#FFC107',     // Amber
-      dark: '#FFA000',        // Dark amber
-    },
-    secondary: {
-      light: '#B3E5FC',       // Light cyan
-      DEFAULT: '#03A9F4',     // Cyan
-      dark: '#0288D1',        // Dark cyan
-    },
-    accent: {
-      light: '#DCEDC8',       // Light green
-      DEFAULT: '#8BC34A',     // Green
-      dark: '#689F38',        // Dark green
-    },
-    background: '#FFFDE7',    // Light yellow background
-    surface: '#FFFFFF',       // White surface
-    error: '#F44336',         // Red for errors
-    success: '#4CAF50',       // Green for success messages
-  },
+    extend: {
+      colors: {
+        primary: {
+          light: '#4169E1',       // Royal Blue
+          DEFAULT: '#0000FF',     // Blue
+          dark: '#00008B',        // Dark Blue
+        },
+        secondary: {
+          light: '#FFB7C5',       // Light Pink
+          DEFAULT: '#FF69B4',     // Hot Pink
+          dark: '#D85692',        // Medium Pink
+        },
+        accent: {
+          light: '#C3F0CA',       // Light Mint Green
+          DEFAULT: '#32CD32',     // Lime Green
+          dark: '#2BA12B',        // Medium Green
+        },
+        background: '#F0F8FF',    // Alice Blue
+        surface: '#FFFFFF',       // White surface
+        error: '#FF4C4C',         // Bright Red for errors
+        success: '#4BB543',       // Emerald Green for success messages
+      },
       keyframes: {
         correct: {
           '0%, 100%': { transform: 'scale(1)', opacity: '1' },

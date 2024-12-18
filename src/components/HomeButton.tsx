@@ -1,15 +1,18 @@
 // src/components/HomeButton.tsx
-
+'use client'
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
-interface HomeButtonProps {
-  onClick: () => void;
-}
+const HomeButton: React.FC = () => {
+  const router = useRouter();
 
-const HomeButton: React.FC<HomeButtonProps> = ({ onClick }) => {
+  const navigateHome = () => {
+    router.push('/');
+  };
+
   return (
     <button
-      onClick={onClick}
+      onClick={navigateHome}
       className="fixed top-4 left-4 px-4 py-2 bg-secondary text-surface rounded font-semibold shadow-md"
     >
       Home

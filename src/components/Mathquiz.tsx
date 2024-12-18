@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SplitsenQuiz from './SplitsenQuiz';
 
-type Operation = 'addition' | 'subtraction' | 'splitsen';
+type Operation = 'addition' | 'subtraction' | 'splitsen' | 'mixed';
 
-interface MathQuizProps {
+interface MathquizProps {
   operation: Operation;
   num1?: number;
   num2?: number;
@@ -21,25 +21,50 @@ const getRandomNumber = (max: number): number => {
   return Math.floor(Math.random() * (max + 1));
 };
 
-const MathQuiz: React.FC<MathQuizProps> = ({ operation, num1, num2, onAnswer }) => {
+const getRandomOperation = (): 'addition' | 'subtraction' => {
+  return Math.random() < 0.5 ? 'addition' : 'subtraction';
+};
+
+const Mathquiz: React.FC<MathquizProps> = ({
+  operation,
+  num1,
+  num2,
+  onAnswer,
+}) => {
   const [currentNum1, setCurrentNum1] = useState<number>(num1 ?? 0);
   const [currentNum2, setCurrentNum2] = useState<number>(num2 ?? 0);
+  const [currentOperation, setCurrentOperation] = useState<
+    'addition' | 'subtraction'
+  >(operation === 'mixed' ? getRandomOperation() : operation as 'addition' | 'subtraction');
   const [answer, setAnswer] = useState<string>('');
   const [message, setMessage] = useState<string>('');
+  const [showNextButton, setShowNextButton] = useState<boolean>(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const nextButtonRef = useRef<HTMLButtonElement>(null);
 
-  const generateNumbers = () => {
+  const generateNumbers = (): void => {
     let a = num1 ?? 0;
     let b = num2 ?? 0;
+    let op: 'addition' | 'subtraction' = currentOperation;
 
-    if (num1 === undefined || num2 === undefined) {
-      if (operation === 'addition') {
-        a = getRandomNumber(5);
-        b = getRandomNumber(5 - a);
-      } else if (operation === 'subtraction') {
-        b = getRandomNumber(5);
-        a = b + getRandomNumber(5 - b);
+    if (operation === 'splitsen') {
+      // Handle splitsen separately
+      return;
+    }
+
+    if (operation === 'mixed') {
+      op = getRandomOperation();
+      setCurrentOperation(op);
+    }
+
+    if (num1 === undefined || num2 === undefined || operation === 'mixed') {
+      if (op === 'addition') {
+        a = getRandomNumber(6);
+        b = getRandomNumber(6 - a);
+      } else if (op === 'subtraction') {
+        b = getRandomNumber(6);
+        a = b + getRandomNumber(6 - b);
       }
     }
 
@@ -47,48 +72,64 @@ const MathQuiz: React.FC<MathQuizProps> = ({ operation, num1, num2, onAnswer }) 
     setCurrentNum2(b);
     setAnswer('');
     setMessage('');
+    setShowNextButton(false);
 
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    // Focus the input field after rendering
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
   };
 
   useEffect(() => {
     if (operation !== 'splitsen') {
       generateNumbers();
     }
-  }, [num1, num2, operation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [operation]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     let correctAnswer = 0;
 
-    if (operation === 'addition') {
+    if (currentOperation === 'addition') {
       correctAnswer = currentNum1 + currentNum2;
-    } else if (operation === 'subtraction') {
+    } else if (currentOperation === 'subtraction') {
       correctAnswer = currentNum1 - currentNum2;
     }
 
-    const isCorrect = parseInt(answer) === correctAnswer;
+    const userAnswer = parseInt(answer);
+    const isCorrect = userAnswer === correctAnswer;
 
     const questionText =
-      operation === 'addition'
+      currentOperation === 'addition'
         ? `${currentNum1} + ${currentNum2}`
         : `${currentNum1} - ${currentNum2}`;
 
     if (onAnswer) {
       onAnswer({
         question: questionText,
-        userAnswer: parseInt(answer),
+        userAnswer,
         correctAnswer,
         isCorrect,
       });
     } else {
-      setMessage(isCorrect ? 'Correct! Great job!' : 'Oops! Try again.');
+      setMessage(
+        isCorrect
+          ? 'Correct! Great job!'
+          : `Oops! The correct answer was ${correctAnswer}.`
+      );
+      setShowNextButton(true);
+
+      // Focus the Next Question button after rendering
       setTimeout(() => {
-        generateNumbers();
-      }, 1000);
+        nextButtonRef.current?.focus();
+      }, 0);
     }
+  };
+
+  const handleNextQuestion = (): void => {
+    generateNumbers();
+    setMessage('');
   };
 
   if (operation === 'splitsen') {
@@ -96,49 +137,76 @@ const MathQuiz: React.FC<MathQuizProps> = ({ operation, num1, num2, onAnswer }) 
   }
 
   return (
-    <div>
-      <div className="flex flex-col items-center">
-        <div className="text-2xl mb-4 flex items-center">
-          <div className="w-20 h-20 border-4 border-primary-dark flex items-center justify-center text-4xl m-2">
-            {currentNum1}
-          </div>
-          <div className="text-4xl font-bold m-2">
-            {operation === 'addition' ? '+' : '–'}
-          </div>
-          <div className="w-20 h-20 border-4 border-primary-dark flex items-center justify-center text-4xl m-2">
-            {currentNum2}
-          </div>
+    <div className="flex flex-col items-center">
+      {/* Math Problem and Input */}
+      <div className="flex items-center justify-center mb-4">
+        <div className="w-20 h-20 border-4 border-primary-dark flex items-center justify-center text-4xl m-2">
+          {currentNum1}
         </div>
-        <form onSubmit={handleSubmit} className="flex flex-col items-center">
-          <input
-            ref={inputRef}
-            type="number"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            required
-            min="-5"
-            max="10"
-            className="text-center text-4xl w-20 h-20 border-4 border-primary-dark rounded mb-4"
-          />
+        <div className="text-4xl font-bold m-2">
+          {currentOperation === 'addition' ? '+' : '–'}
+        </div>
+        <div className="w-20 h-20 border-4 border-primary-dark flex items-center justify-center text-4xl m-2">
+          {currentNum2}
+        </div>
+        <div className="text-4xl font-bold m-2">=</div>
+
+        {!showNextButton && (
+          <form onSubmit={handleSubmit}>
+            <input
+              ref={inputRef}
+              type="number"
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              required
+              min="-6"
+              max="12"
+              className="text-center text-4xl w-20 h-20 border-4 border-primary-dark rounded"
+            />
+          </form>
+        )}
+
+        {showNextButton && (
+          <div className="text-4xl w-20 h-20 flex items-center justify-center m-2">
+            {answer}
+          </div>
+        )}
+      </div>
+
+      {/* Submit or Next Button */}
+      <div className="flex flex-col items-center">
+        {!showNextButton ? (
           <button
             type="submit"
+            onClick={handleSubmit}
             className="px-4 py-2 bg-accent text-surface rounded font-semibold"
           >
             Submit Answer
           </button>
-        </form>
-        {!onAnswer && message && (
-          <div
-            className={`mt-4 text-2xl text-center font-semibold ${
-              message.includes('Correct') ? 'text-success' : 'text-error'
-            }`}
+        ) : (
+          <button
+            type="button"
+            onClick={handleNextQuestion}
+            ref={nextButtonRef}
+            className="px-4 py-2 bg-primary text-surface rounded font-semibold"
           >
-            {message}
-          </div>
+            Next Question
+          </button>
         )}
       </div>
+
+      {/* Message Display */}
+      {!onAnswer && message && (
+        <div
+          className={`mt-4 text-2xl text-center font-semibold ${
+            message.includes('Correct') ? 'text-success' : 'text-error'
+          }`}
+        >
+          {message}
+        </div>
+      )}
     </div>
   );
 };
 
-export default MathQuiz;
+export default Mathquiz;

@@ -1,4 +1,6 @@
-// src/components/ModeSelection.tsx
+// components/ModeSelection.tsx
+
+'use client';
 
 import React from 'react';
 
@@ -8,19 +10,19 @@ interface ModeSelectionProps {
 
 const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
   return (
-    <div className="flex flex-col items-center">
-      <h2 className="text-3xl font-bold mb-4">Select Mode</h2>
+    <div className="flex flex-col items-center space-y-6">
+      <h2 className="text-4xl font-bold mb-6 text-primary-dark">Select Mode</h2>
       <button
         onClick={() => onSelectMode('practice')}
-        className="px-4 py-2 bg-primary text-surface rounded font-semibold m-2"
+        className="w-72 px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition duration-200 focus:outline-none"
       >
-        Practice
+        Practice Mode
       </button>
       <button
         onClick={() => onSelectMode('testing')}
-        className="px-4 py-2 bg-primary text-surface rounded font-semibold m-2"
+        className="w-72 px-6 py-3 bg-secondary text-white rounded-lg font-semibold hover:bg-secondary-dark transition duration-200 focus:outline-none"
       >
-        Testing
+        Testing Mode
       </button>
     </div>
   );
