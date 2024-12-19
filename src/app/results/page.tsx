@@ -1,7 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
-import axios from "axios";
-import Link from "next/link";
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import Link from 'next/link';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,8 +13,8 @@ import {
   Tooltip,
   Legend,
   ChartData,
-} from "chart.js";
-import { Line } from "react-chartjs-2";
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
 
 // Registering the required components
 ChartJS.register(
