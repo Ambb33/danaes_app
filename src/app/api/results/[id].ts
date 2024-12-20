@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import pool from '../../../utils/database';
+import prisma from '@/utils/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const {
@@ -9,25 +9,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (method === 'GET') {
-      const client = await pool.connect();
-      try {
-        const result = await client.query(
-          `SELECT t.*, array_agg(row_to_json(q.*)) AS questions 
-           FROM Test t
-           LEFT JOIN TestQuestion q ON t.id = q.testId
-           WHERE t.id = $1
-           GROUP BY t.id`,
-          [id]
-        );
+      const test = await prisma.test.findUnique({
+        where: {
+          id: Number(id),
+        },
+        include: {
+          questions: true,
+        },
+      });
 
-        if (result.rows.length === 0) {
-          return res.status(404).json({ error: 'Test not found' });
-        }
-
-        res.status(200).json(result.rows[0]);
-      } finally {
-        client.release();
+      if (!test) {
+        return res.status(404).json({ error: 'Test not found' });
       }
+
+      res.status(200).json(test);
     } else {
       res.setHeader('Allow', ['GET']);
       res.status(405).end(`Method ${method} Not Allowed`);

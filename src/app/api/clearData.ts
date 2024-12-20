@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import pool from '../../utils/database';
+import prisma from '@/utils/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Only allow POST requests
@@ -23,25 +23,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const client = await pool.connect();
-    try {
-      // Disable foreign key checks if necessary
-      await client.query('SET session_replication_role = replica;');
+    // Start a transaction
+    await prisma.$transaction(async (prisma: { testQuestion: { deleteMany: () => any; }; test: { deleteMany: () => any; }; }) => {
+      // Delete all entries in the TestQuestion and Test tables
+      await prisma.testQuestion.deleteMany();
+      await prisma.test.deleteMany();
+    });
 
-      // Truncate tables - Add all tables you want to clear
-      await Promise.all([
-        client.query('TRUNCATE TABLE "Test" CASCADE;'),
-        client.query('TRUNCATE TABLE "TestQuestion" CASCADE;'),
-      ]);
-      console.log('Cleared data from tables Test and TestQuestion');
-
-      // Re-enable foreign key checks
-      await client.query('SET session_replication_role = DEFAULT;');
-
-      res.status(200).json({ message: 'Data cleared successfully.' });
-    } finally {
-      client.release();
-    }
+    console.log('Cleared data from tables Test and TestQuestion');
+    res.status(200).json({ message: 'Data cleared successfully.' });
   } catch (error) {
     console.error('Error clearing data:', error);
     res.status(500).json({ error: 'Internal Server Error' });
