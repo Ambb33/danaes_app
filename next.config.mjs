@@ -1,5 +1,4 @@
-
-const nextConfig = {add.
+const nextConfig = {
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
