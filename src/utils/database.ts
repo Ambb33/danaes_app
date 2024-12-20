@@ -8,14 +8,23 @@ const databaseUrl = process.env.DATABASE_URL!;
 
 async function createDatabase() {
   const client = new Client({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: databaseUrl,
     ssl: {
-      rejectUnauthorized: false, // Adjust based on your provider's requirements
+      rejectUnauthorized: false,
     },
   });
 
   await client.connect();
-  await client.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME};`);
+  const dbName = process.env.DB_NAME;
+
+  const res = await client.query(`SELECT 1 FROM pg_database WHERE datname='${dbName}';`);
+  if (res.rowCount === 0) {
+    await client.query(`CREATE DATABASE ${dbName};`);
+    console.log(`Database ${dbName} created`);
+  } else {
+    console.log(`Database ${dbName} already exists`);
+  }
+  
   await client.end();
 }
 
@@ -32,7 +41,7 @@ const sequelize = new Sequelize(databaseUrl, {
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorized: false, // Adjust based on your provider's requirements
+      rejectUnauthorized: false,
     },
   },
 });
