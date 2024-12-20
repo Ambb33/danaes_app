@@ -34,6 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         orderBy: {
           timestamp: 'desc',
         },
+        take: 10,  // Optional: limit results to 10
       });
       res.status(200).json(tests);
     } else {
@@ -42,6 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error) {
     console.error('Error handling request:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: message });
   }
 }

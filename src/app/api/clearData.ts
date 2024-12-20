@@ -29,8 +29,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await client.query('SET session_replication_role = replica;');
 
       // Truncate tables - Add all tables you want to clear
-      await client.query('TRUNCATE TABLE "Test" CASCADE;');
-      await client.query('TRUNCATE TABLE "TestQuestion" CASCADE;');
+      await Promise.all([
+        client.query('TRUNCATE TABLE "Test" CASCADE;'),
+        client.query('TRUNCATE TABLE "TestQuestion" CASCADE;'),
+      ]);
       console.log('Cleared data from tables Test and TestQuestion');
 
       // Re-enable foreign key checks
