@@ -17,6 +17,7 @@ async function createDatabase() {
   await client.connect();
   const dbName = process.env.DB_NAME;
 
+  // Check if the database exists, and create it if it doesn't
   const res = await client.query(`SELECT 1 FROM pg_database WHERE datname='${dbName}';`);
   if (res.rowCount === 0) {
     await client.query(`CREATE DATABASE ${dbName};`);
@@ -24,7 +25,7 @@ async function createDatabase() {
   } else {
     console.log(`Database ${dbName} already exists`);
   }
-  
+
   await client.end();
 }
 
@@ -36,12 +37,13 @@ createDatabase()
     console.error('Error creating database:', error);
   });
 
+// Initialize Sequelize instance
 const sequelize = new Sequelize(databaseUrl, {
   dialect: 'postgres',
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorized: false,
+      rejectUnauthorized: false, // Adjust based on provider's requirements
     },
   },
 });

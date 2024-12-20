@@ -159,7 +159,7 @@ const MathQuizSeries: React.FC<MathQuizSeriesProps> = ({ operation }) => {
     };
 
     try {
-      await axios.post('/api/results', testData);
+      await axios.post('./api/results', testData);
     } catch (error) {
       console.error('Error saving test results:', error);
     }
