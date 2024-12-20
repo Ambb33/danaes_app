@@ -9,17 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@types/chart.js": "^3.9.17",
+    "@types/chart.js": "^2.9.32",
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
     "dotenv": "^16.4.7",
     "framer-motion": "^11.15.0",
     "mongodb": "^6.12.0",
     "mysql2": "^3.11.5",
-    "next": "^15.1.1-canary.6",
-    "react": "19.0.0-rc-66855b96-20241106",
+    "next": "^13.1.1",
+    "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
-    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "react-dom": "^18.2.0",
     "react-icons": "^5.4.0",
     "sequelize": "^6.37.5"
   },
