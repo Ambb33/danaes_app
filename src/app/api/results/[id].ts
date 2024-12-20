@@ -1,9 +1,5 @@
-//api/results/[id].ts
-
 import { NextApiRequest, NextApiResponse } from 'next';
-import Result from '../../../models/Test';
-import TestQuestion from '../../../models/TestQuestion'; // Import the TestQuestion model
-import sequelize from '../../../utils/database';
+import pool from '../../../utils/database';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const {
@@ -12,19 +8,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } = req;
 
   try {
-    await sequelize.sync();
-
     if (method === 'GET') {
-      const result = await Result.findOne({
-        where: { id },
-        include: [{ model: TestQuestion, as: 'questions' }],
-      });
+      const client = await pool.connect();
+      try {
+        const result = await client.query(
+          `SELECT t.*, array_agg(row_to_json(q.*)) AS questions 
+           FROM Test t
+           LEFT JOIN TestQuestion q ON t.id = q.testId
+           WHERE t.id = $1
+           GROUP BY t.id`,
+          [id]
+        );
 
-      if (!result) {
-        return res.status(404).json({ error: 'Test not found' });
+        if (result.rows.length === 0) {
+          return res.status(404).json({ error: 'Test not found' });
+        }
+
+        res.status(200).json(result.rows[0]);
+      } finally {
+        client.release();
       }
-
-      res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['GET']);
       res.status(405).end(`Method ${method} Not Allowed`);

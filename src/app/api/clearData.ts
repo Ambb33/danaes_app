@@ -1,8 +1,5 @@
-// pages/api/clearData.ts
-
 import { NextApiRequest, NextApiResponse } from 'next';
-import sequelize from '../../utils/database';
-import Result from '../../models/Test'; // Import your models here
+import pool from '../../utils/database';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Only allow POST requests
@@ -26,17 +23,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Disable foreign key checks if necessary
-    await sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
+    const client = await pool.connect();
+    try {
+      // Disable foreign key checks if necessary
+      await client.query('SET session_replication_role = replica;');
 
-    // Truncate tables - Add all models you want to clear
-    await Result.destroy({ where: {}, truncate: true });
-    console.log(`Cleared data from table '${Result.getTableName()}'`);
+      // Truncate tables - Add all tables you want to clear
+      await client.query('TRUNCATE TABLE "Test" CASCADE;');
+      await client.query('TRUNCATE TABLE "TestQuestion" CASCADE;');
+      console.log('Cleared data from tables Test and TestQuestion');
 
-    // Re-enable foreign key checks
-    await sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
+      // Re-enable foreign key checks
+      await client.query('SET session_replication_role = DEFAULT;');
 
-    res.status(200).json({ message: 'Data cleared successfully.' });
+      res.status(200).json({ message: 'Data cleared successfully.' });
+    } finally {
+      client.release();
+    }
   } catch (error) {
     console.error('Error clearing data:', error);
     res.status(500).json({ error: 'Internal Server Error' });
