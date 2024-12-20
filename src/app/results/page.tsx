@@ -16,7 +16,6 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
-// Registering the required components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -50,18 +49,22 @@ interface TestQuestion {
 
 const Results: React.FC = () => {
   const [results, setResults] = useState<Result[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
 
   useEffect(() => {
     const fetchResults = async () => {
+      setLoading(true);
       try {
-        const response = await axios.get("/api/results");
+        const response = await axios.get('/api/results');
         setResults(response.data);
         calculateMistakes(response.data);
       } catch (err) {
-        console.error("Error fetching results:", err);
-        setError("Failed to fetch results");
+        console.error('Error fetching results:', err);
+        setError('Failed to fetch results');
+      } finally {
+        setLoading(false);
       }
     };
     fetchResults();
@@ -92,7 +95,7 @@ const Results: React.FC = () => {
     setMistakes(sortedMistakes);
   };
 
-  const generateScoreTrendData = (): ChartData<"line"> => {
+  const generateScoreTrendData = (): ChartData<'line'> => {
     const labels = results.map((result) =>
       new Date(result.timestamp).toLocaleDateString()
     );
@@ -104,7 +107,7 @@ const Results: React.FC = () => {
         .filter((result) => result.testType === testType)
         .map((result) => result.score);
 
-      const colors = ["rgba(75, 192, 192, 1)", "rgba(255, 99, 132, 1)", "rgba(54, 162, 235, 1)", "rgba(255, 206, 86, 1)"];
+      const colors = ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'];
 
       return {
         label: `${testType.charAt(0).toUpperCase() + testType.slice(1)} Score Trend`,
@@ -131,28 +134,28 @@ const Results: React.FC = () => {
   }, {} as Record<string, number>);
 
   const clearData = async () => {
-    const password = prompt("Enter the password to clear all results:");
+    const password = prompt('Enter the password to clear all results:');
 
     if (!password) {
-      alert("Password is required to clear data.");
+      alert('Password is required to clear data.');
       return;
     }
 
     try {
-      const response = await axios.post("/api/clearData", { password });
+      const response = await axios.post('/api/clearData', { password });
       if (response.status === 200) {
         setResults([]);
         setMistakes([]);
-        alert("All results have been cleared.");
+        alert('All results have been cleared.');
       } else {
-        alert("Failed to clear results.");
+        alert('Failed to clear results.');
       }
     } catch (err: any) {
       if (err.response && err.response.status === 401) {
-        alert("Unauthorized: Incorrect password.");
+        alert('Unauthorized: Incorrect password.');
       } else {
-        console.error("Error clearing results:", err);
-        setError("Failed to clear results");
+        console.error('Error clearing results:', err);
+        setError('Failed to clear results');
       }
     }
   };
@@ -161,77 +164,82 @@ const Results: React.FC = () => {
     <div className="text-center p-4">
       <h2 className="text-3xl font-bold mb-4">Results History</h2>
       {error && <p className="text-error">{error}</p>}
-      {totalTests > 0 && (
-        <>
-          <p className="text-lg mb-2">Total Tests: {totalTests}</p>
-          <p className="text-lg mb-4">
-            Breakdown by Test Type:
-            {Object.entries(testTypeCounts).map(([testType, count]) => (
-              <span key={testType} className="ml-2">
-                {testType.charAt(0).toUpperCase() + testType.slice(1)}: {count}
-              </span>
-            ))}
-          </p>
-        </>
-      )}
-
-      {results.length > 0 && (
-        <>
-          <div className="mb-8">
-            <Line data={generateScoreTrendData()} />
-          </div>
-
-          <h3 className="text-2xl font-bold mb-4">Top 10 Mistakes</h3>
-          <ul className="list-disc list-inside">
-            {mistakes.map((mistake) => (
-              <li key={mistake.operation}>
-                {mistake.operation}: {mistake.count}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      {results.length === 0 ? (
-        <p>No results available.</p>
+      {loading ? (
+        <p>Loading...</p>
       ) : (
-        <table className="w-full max-w-lg mx-auto text-left">
-          <thead>
-            <tr>
-              <th className="border px-2 py-1">Date</th>
-              <th className="border px-2 py-1">Test Type</th>
-              <th className="border px-2 py-1">Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((result) => (
-              <tr key={result.id} className="border-t hover:bg-gray-100">
-                <td className="border px-2 py-1">
-                  <Link href={`/results/${result.id}`}>
-                    {new Date(result.timestamp).toLocaleString()}
-                  </Link>
-                </td>
-                <td className="border px-2 py-1">
-                  <Link href={`/results/${result.id}`}>
-                    {result.testType.charAt(0).toUpperCase() +
-                      result.testType.slice(1)}
-                  </Link>
-                </td>
-                <td className="border px-2 py-1">
-                  <Link href={`/results/${result.id}`}>{result.score}</Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+        <>
+          {totalTests > 0 && (
+            <>
+              <p className="text-lg mb-2">Total Tests: {totalTests}</p>
+              <p className="text-lg mb-4">
+                Breakdown by Test Type:
+                {Object.entries(testTypeCounts).map(([testType, count]) => (
+                  <span key={testType} className="ml-2">
+                    {testType.charAt(0).toUpperCase() + testType.slice(1)}: {count}
+                  </span>
+                ))}
+              </p>
+            </>
+          )}
 
-      <button
-        onClick={clearData}
-        className="mt-4 bg-error text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
-      >
-        Clear All Results
-      </button>
+          {results.length > 0 && (
+            <>
+              <div className="mb-8">
+                <Line data={generateScoreTrendData()} />
+              </div>
+
+              <h3 className="text-2xl font-bold mb-4">Top 10 Mistakes</h3>
+              <ul className="list-disc list-inside">
+                {mistakes.map((mistake) => (
+                  <li key={mistake.operation}>
+                    {mistake.operation}: {mistake.count}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {results.length === 0 ? (
+            <p>No results available.</p>
+          ) : (
+            <table className="w-full max-w-lg mx-auto text-left">
+              <thead>
+                <tr>
+                  <th className="border px-2 py-1">Date</th>
+                  <th className="border px-2 py-1">Test Type</th>
+                  <th className="border px-2 py-1">Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.map((result) => (
+                  <tr key={result.id} className="border-t hover:bg-gray-100">
+                    <td className="border px-2 py-1">
+                      <Link href={`/results/${result.id}`}>
+                        {new Date(result.timestamp).toLocaleString()}
+                      </Link>
+                    </td>
+                    <td className="border px-2 py-1">
+                      <Link href={`/results/${result.id}`}>
+                        {result.testType.charAt(0).toUpperCase() + result.testType.slice(1)}
+                      </Link>
+                    </td>
+                    <td className="border px-2 py-1">
+                      <Link href={`/results/${result.id}`}>{result.score}</Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          <button
+            onClick={clearData}
+            className="mt-4 bg-error text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
+          >
+            Clear All Results
+          </button>
+        </>
+      )}
     </div>
   );
 };
