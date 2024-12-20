@@ -1,24 +1,22 @@
 import { Sequelize } from 'sequelize';
-import mysql from 'mysql2/promise';
+import { Client } from 'pg';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const database = process.env.DB_NAME!;
-const username = process.env.DB_USER!;
-const password = process.env.DB_PASSWORD!;
-const host = process.env.DB_HOST!;
-const port = Number(process.env.DB_PORT!);
+const databaseUrl = process.env.DATABASE_URL!;
 
 async function createDatabase() {
-  const connection = await mysql.createConnection({
-    host,
-    user: username,
-    password,
-    port,
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false, // Adjust based on your provider's requirements
+    },
   });
-  await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
-  await connection.end();
+
+  await client.connect();
+  await client.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME};`);
+  await client.end();
 }
 
 createDatabase()
@@ -29,10 +27,14 @@ createDatabase()
     console.error('Error creating database:', error);
   });
 
-const sequelize = new Sequelize(database, username, password, {
-  host,
-  port,
-  dialect: 'mysql',
+const sequelize = new Sequelize(databaseUrl, {
+  dialect: 'postgres',
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false, // Adjust based on your provider's requirements
+    },
+  },
 });
 
 sequelize
