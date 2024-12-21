@@ -14,8 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         questions.some(
           (q) =>
             typeof q.question !== 'string' ||
-            typeof q.userAnswer !== 'number' ||
-            typeof q.correctAnswer !== 'number' ||
+            typeof q.userAnswer !== 'string' || // Expecting string type here
+            typeof q.correctAnswer !== 'string' || // Expecting string type here
             typeof q.isCorrect !== 'boolean'
         )
       ) {
@@ -33,8 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           questions: {
             create: questions.map((q: {
               question: string;
-              userAnswer: number;
-              correctAnswer: number;
+              userAnswer: string; // Ensure this matches your schema
+              correctAnswer: string; // Ensure this matches your schema
               isCorrect: boolean;
             }) => ({
               question: q.question,
