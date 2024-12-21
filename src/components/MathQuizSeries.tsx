@@ -152,12 +152,14 @@ const MathQuizSeries: React.FC<MathQuizSeriesProps> = ({ operation }) => {
       score: correctAnswers,
       questions: results.map((res) => ({
         question: res.question,
-        userAnswer: res.userAnswer,
-        correctAnswer: res.correctAnswer,
+        userAnswer: String(res.userAnswer), // Convert to string
+        correctAnswer: String(res.correctAnswer), // Convert to string
         isCorrect: res.isCorrect,
       })),
     };
-
+  
+    console.log('Sending test data:', testData); // Log the data being sent
+  
     try {
       const response = await axios.post('/api/results', testData);
       console.log('Results saved successfully:', response.data);
@@ -165,6 +167,8 @@ const MathQuizSeries: React.FC<MathQuizSeriesProps> = ({ operation }) => {
       console.error('Error saving test results:', error);
     }
   };
+  
+  
 
   const handleReset = () => {
     generateQuestions();

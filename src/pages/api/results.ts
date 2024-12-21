@@ -6,6 +6,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method === 'POST') {
       const { testType, score, questions } = req.body;
 
+      // Log the received request body for debugging
+      console.log('Received request body:', JSON.stringify(req.body, null, 2));
+
       // Validate input
       if (
         typeof testType !== 'string' ||
@@ -19,11 +22,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             typeof q.isCorrect !== 'boolean'
         )
       ) {
+        console.log('Invalid input data:', JSON.stringify(req.body, null, 2)); // Detailed log
         return res.status(400).json({ error: 'Invalid input data' });
       }
 
-      // Log the request body for debugging
-      console.log('Request Body:', req.body);
+      console.log('Valid request body:', JSON.stringify(req.body, null, 2)); // Detailed log
 
       // Create the test entry in the database
       const test = await prisma.test.create({
