@@ -8,24 +8,29 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          light: '#4169E1',       // Royal Blue
-          DEFAULT: '#0000FF',     // Blue
-          dark: '#00008B',        // Dark Blue
+          light: '#ADD8E6',       // Pastel Light Blue
+          DEFAULT: '#5DADE2',     // Medium Blue with better contrast
+          dark: '#2874A6',        // Dark Blue for text or accents
         },
         secondary: {
-          light: '#FFB7C5',       // Light Pink
-          DEFAULT: '#FF69B4',     // Hot Pink
-          dark: '#D85692',        // Medium Pink
+          light: '#FFD1DC',       // Pastel Pink
+          DEFAULT: '#FF99B9',     // Medium Pink for buttons
+          dark: '#C2185B',        // Dark Pink for text or borders
         },
         accent: {
-          light: '#C3F0CA',       // Light Mint Green
-          DEFAULT: '#32CD32',     // Lime Green
-          dark: '#2BA12B',        // Medium Green
+          light: '#D1FFD1',       // Pastel Mint Green
+          DEFAULT: '#88D498',     // Medium Green for buttons
+          dark: '#2E8B57',        // Dark Green for text or accents
         },
-        background: '#F0F8FF',    // Alice Blue
-        surface: '#FFFFFF',       // White surface
-        error: '#FF4C4C',         // Bright Red for errors
-        success: '#4BB543',       // Emerald Green for success messages
+        background: '#FFF5F5',    // Light Pastel Pink Background
+        surface: '#FFFFFF',       // White for surfaces
+        error: '#FF7A7A',         // Medium Red for better readability
+        success: '#A3D9B7',       // Pastel Green for success
+        text: {
+          primary: '#1B4F72',     // Dark Blue for high contrast text
+          secondary: '#5B2C6F',   // Dark Purple for secondary text
+          accent: '#2E7D32',      // Dark Green for accent text
+        },
       },
       keyframes: {
         correct: {

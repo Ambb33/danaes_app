@@ -35,7 +35,29 @@ export default function Results() {
   }, []);
 
   const clearData = async () => {
-    // Your existing clearData function
+    const password = prompt('Enter the password to clear all results:');
+
+    if (!password) {
+      alert('Password is required to clear data.');
+      return;
+    }
+
+    try {
+      const response = await axios.post('/api/clearData', { password });
+      if (response.status === 200) {
+        setResults([]);
+        alert('All results have been cleared.');
+      } else {
+        alert('Failed to clear results.');
+      }
+    } catch (err: any) {
+      if (err.response && err.response.status === 401) {
+        alert('Unauthorized: Incorrect password.');
+      } else {
+        console.error('Error clearing results:', err);
+        setError('Failed to clear results');
+      }
+    }
   };
 
   return (
