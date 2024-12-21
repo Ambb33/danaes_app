@@ -195,7 +195,7 @@ const MathQuizSeries: React.FC<MathQuizSeriesProps> = ({ operation }) => {
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  return (
+return (
     <div>
       <div className="text-xl mb-4">
         Question {currentQuestionIndex + 1} of {questions.length}
