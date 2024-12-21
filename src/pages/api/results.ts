@@ -6,16 +6,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method === 'POST') {
       const { testType, score, questions } = req.body;
 
-      if (!testType || score === undefined || !Array.isArray(questions)) {
+      // Validate input
+      if (
+        typeof testType !== 'string' ||
+        typeof score !== 'number' ||
+        !Array.isArray(questions) ||
+        questions.some(
+          (q) =>
+            typeof q.question !== 'string' ||
+            typeof q.userAnswer !== 'number' ||
+            typeof q.correctAnswer !== 'number' ||
+            typeof q.isCorrect !== 'boolean'
+        )
+      ) {
         return res.status(400).json({ error: 'Invalid input data' });
       }
 
+      // Log the request body for debugging
+      console.log('Request Body:', req.body);
+
+      // Create the test entry in the database
       const test = await prisma.test.create({
         data: {
           testType,
           score,
           questions: {
-            create: questions.map((q: any) => ({
+            create: questions.map((q: {
+              question: string;
+              userAnswer: number;
+              correctAnswer: number;
+              isCorrect: boolean;
+            }) => ({
               question: q.question,
               userAnswer: q.userAnswer,
               correctAnswer: q.correctAnswer,
@@ -34,8 +55,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         orderBy: {
           timestamp: 'desc',
         },
-        take: 10,  // Optional: limit results to 10
+        take: 10, // Optional: limit results to 10
       });
+
       res.status(200).json(tests);
     } else {
       res.setHeader('Allow', ['GET', 'POST']);
@@ -43,7 +65,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   } catch (error) {
     console.error('Error handling request:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ error: message });
+
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
   }
 }

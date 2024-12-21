@@ -159,7 +159,8 @@ const MathQuizSeries: React.FC<MathQuizSeriesProps> = ({ operation }) => {
     };
 
     try {
-      await axios.post('./api/results', testData);
+      const response = await axios.post('/api/results', testData);
+      console.log('Results saved successfully:', response.data);
     } catch (error) {
       console.error('Error saving test results:', error);
     }
@@ -178,32 +179,6 @@ const MathQuizSeries: React.FC<MathQuizSeriesProps> = ({ operation }) => {
         <p className="text-xl mb-4">
           You answered {correctAnswers} out of {questions.length} questions correctly.
         </p>
-        <table className="w-full max-w-lg mx-auto text-left">
-          <thead>
-            <tr>
-              <th className="border px-2 py-1">Question</th>
-              <th className="border px-2 py-1">Your Answer</th>
-              <th className="border px-2 py-1">Correct Answer</th>
-              <th className="border px-2 py-1">Result</th>
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((result, index) => (
-              <tr key={index} className="border-t">
-                <td className="border px-2 py-1">{result.question}</td>
-                <td className="border px-2 py-1">{result.userAnswer}</td>
-                <td className="border px-2 py-1">{result.correctAnswer}</td>
-                <td className="border px-2 py-1">
-                  {result.isCorrect ? (
-                    <span className="text-success font-semibold">Correct</span>
-                  ) : (
-                    <span className="text-error font-semibold">Incorrect</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
         <button
           onClick={handleReset}
           className="mt-6 px-4 py-2 bg-primary text-white rounded font-semibold"
